@@ -5,7 +5,7 @@ import java.util.HashSet;
 class Solution {
 	public static void main(String[] args) {
 		String[] phone_book = new String[] { "123", "456", "789", };
-		System.out.println(new Solution().solution(phone_book));
+		System.out.println(new Solution().solution(phone_book)); 
 	}
 
 	public boolean solution(String[] phone_book) {
