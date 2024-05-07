@@ -1,93 +1,52 @@
 package problem.º∂ø¨∞·«œ±‚;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 class Solution {
-	public static void main(String[] args) {
-		int n = 4;
-		int[][] costs = new int[][] { { 0, 1, 1 }, { 0, 2, 2 }, { 0, 3, 5 }};
-		System.out.println(new Solution().solution(n, costs));
-	}
 
-	public int solution(int n, int[][] costs) {
-		Edge[] edges = new Edge[n];
-		for (int i = 0; i < edges.length; i++) {
-			edges[i] = new Edge(i);
-		}
+  public static void main(String[] args) {
+    int n = 4;
+    int[][] costs = new int[][]{{0, 1, 1}, {0, 2, 2}, {1, 2, 5}, {1, 3, 1}, {2, 3, 8}};
+    System.out.println(new Solution().solution(n, costs));
+  }
 
-		for (int i = 0; i < costs.length; i++) {
-			int point1 = costs[i][0];
-			int point2 = costs[i][1];
-			int cost = costs[i][2];
+  public int solution(int n, int[][] costs) {
+    Map<Integer, HashSet<String>> costMap = new TreeMap<>();
+    for (int i = 0; i < costs.length; i++) {
+      int edge1 = costs[i][0];
+      int edge2 = costs[i][1];
+      int cost = costs[i][2];
 
-			edges[point1].briges.add(new Bridge(edges[point2], cost));
-			edges[point2].briges.add(new Bridge(edges[point1], cost));
-		}
+      HashSet<String> costInfo = costMap.getOrDefault(cost, new HashSet<>());
+      costInfo.add(edge1 + "," + edge2);
+      costMap.put(cost, costInfo);
+    }
+    int[] parents = IntStream.range(0, n).toArray();
+    int cost = 0;
+    for (Integer key : costMap.keySet()) {
+      HashSet<String> costInfos = costMap.get(key);
+      for (String costInfo : costInfos) {
+        Integer edge1 = Integer.parseInt(costInfo.split(",")[0]);
+        Integer edge2 = Integer.parseInt(costInfo.split(",")[1]);
 
-		return tarverseAndFindMax(edges);
+        if (getParent(parents, edge1) != getParent(parents, edge2)) {
+          parents[getParent(parents, edge1)] = getParent(parents, edge2);
+          cost += key;
+        }
+      }
 
-	}
+    }
+    return cost;
+  }
 
-	private int tarverseAndFindMax(Edge[] edges) {
-		boolean[] visited = new boolean[edges.length];
-		AtomicInteger max = new AtomicInteger(Integer.MAX_VALUE);
-
-		for (int i = 0; i < edges.length; i++) {
-			findMax(edges, Arrays.copyOf(visited, visited.length), i, max, 0, 0);
-		}
-
-		return max.intValue();
-	}
-
-	private void findMax(Edge[] edges, boolean[] visited, int curIdx, AtomicInteger max, int visitCnt, int cost) {
-		visitCnt++;
-		visited[curIdx] = true;
-		if (visitCnt == visited.length) {
-			if (max.get() > cost) {
-				max.set(cost);
-			}
-		}
-
-		boolean isAnyVisit = false;
-		ArrayList<Bridge> nextVisitBriges = edges[curIdx].briges;
-		for (int i = 0; i < nextVisitBriges.size(); i++) {
-			Bridge bridge = nextVisitBriges.get(i);
-			if (!visited[bridge.to.idx]) {
-				findMax(edges, Arrays.copyOf(visited, visited.length), bridge.to.idx, max, visitCnt,
-						cost + bridge.cost);
-				boolean[] copyVisited = Arrays.copyOf(visited, visited.length);
-				copyVisited[bridge.to.idx] = true;
-				findMax(edges, copyVisited, curIdx, max, visitCnt,
-						cost + bridge.cost);
-				isAnyVisit = true;
-			}
-		}
-		if (!isAnyVisit) {
-			return;
-		}
-
-	}
-
-	public class Edge {
-		int idx;
-		ArrayList<Bridge> briges;
-
-		public Edge(int idx) {
-			this.idx = idx;
-			this.briges = new ArrayList<>();
-		}
-	}
-
-	public class Bridge {
-		Edge to;
-		int cost;
-
-		public Bridge(Edge to, int cost) {
-			this.to = to;
-			this.cost = cost;
-		}
-
-	}
+  private int getParent(int[] parents, Integer edge) {
+    if (parents[edge] == edge) {
+      return edge;
+    } else {
+      return getParent(parents, parents[edge]);
+    }
+  }
 }
